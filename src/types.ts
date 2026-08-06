@@ -68,7 +68,7 @@ export interface RenderProgress {
   outputBlobUrl?: string;
 }
 
-export type KeyDurationOption = '7d' | '30d' | '90d' | '365d' | 'lifetime';
+export type KeyDurationOption = '1h' | '7d' | '30d' | '90d' | '365d' | 'lifetime';
 
 export interface LicenseInfo {
   key: string;
@@ -80,7 +80,9 @@ export interface LicenseInfo {
   isValid: boolean;
   isExpired: boolean;
   daysRemaining: number | null; // null for lifetime
+  timeRemainingText?: string;
 }
+
 
 export interface ActivationResult {
   success: boolean;

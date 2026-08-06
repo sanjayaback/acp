@@ -58,7 +58,11 @@ export const Header: React.FC<HeaderProps> = ({
               <>
                 <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
                 <span>
-                  {license?.isLifetime ? 'Lifetime License' : `${license?.daysRemaining}d Left`}
+                  {license?.isLifetime
+                    ? 'Lifetime License'
+                    : license?.timeRemainingText
+                    ? `${license.timeRemainingText} Left`
+                    : `${license?.daysRemaining}d Left`}
                 </span>
               </>
             ) : (

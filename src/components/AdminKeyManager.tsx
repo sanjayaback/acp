@@ -134,6 +134,7 @@ export const AdminKeyManager: React.FC<AdminKeyManagerProps> = ({ isOpen, onClos
                   <label className="block text-xs text-slate-400 mb-1.5">Select License Expiration Duration</label>
                   <div className="grid grid-cols-3 gap-2">
                     {[
+                      { id: '1h', label: '1 Hour Pass' },
                       { id: '7d', label: '7 Days Pass' },
                       { id: '30d', label: '30 Days License' },
                       { id: '90d', label: '90 Days Pass' },

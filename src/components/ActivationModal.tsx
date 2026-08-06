@@ -125,13 +125,13 @@ export const ActivationModal: React.FC<ActivationModalProps> = ({
                   </div>
                 ) : (
                   <>
-                    <div>Expires: {currentLicense.expiresAt ? new Date(currentLicense.expiresAt).toLocaleDateString() : 'N/A'}</div>
+                    <div>Expires: {currentLicense.expiresAt ? new Date(currentLicense.expiresAt).toLocaleString([], { dateStyle: 'short', timeStyle: 'short' }) : 'N/A'}</div>
                     <div className="flex items-center gap-1 text-slate-200">
                       <Clock className="w-3.5 h-3.5 text-indigo-400" />
                       <span>
-                        Days Remaining:{' '}
+                        Time Remaining:{' '}
                         <strong className={isValid ? 'text-emerald-400' : 'text-rose-400'}>
-                          {currentLicense.daysRemaining ?? 0} days
+                          {currentLicense.timeRemainingText || `${currentLicense.daysRemaining ?? 0} days`}
                         </strong>
                       </span>
                     </div>

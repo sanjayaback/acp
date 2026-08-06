@@ -28,7 +28,12 @@ export function generateLicenseKey(duration: KeyDurationOption, label?: string):
   let expiresTimestamp: number | null = null;
   const now = new Date();
 
-  if (duration === '7d') {
+  if (duration === '1h') {
+    durCode = '01H';
+    planName = '1 Hour Pass';
+    const exp = new Date(now.getTime() + 1 * 60 * 60 * 1000);
+    expiresTimestamp = Math.floor(exp.getTime() / 1000);
+  } else if (duration === '7d') {
     durCode = '07D';
     planName = '7 Days Pass';
     const exp = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
@@ -97,7 +102,8 @@ export function verifyLicenseKey(rawKey: string): ActivationResult {
   const isLifetime = durCode === 'LIFE' || expHex === 'FFFFFFFF';
 
   let planName = 'Standard License';
-  if (durCode === '07D') planName = '7 Days Pass';
+  if (durCode === '01H') planName = '1 Hour Pass';
+  else if (durCode === '07D') planName = '7 Days Pass';
   else if (durCode === '30D') planName = '30 Days License';
   else if (durCode === '90D') planName = '90 Days Pass';
   else if (durCode === '365D') planName = '1 Year License';
@@ -108,13 +114,25 @@ export function verifyLicenseKey(rawKey: string): ActivationResult {
   const isExpired = !isLifetime && nowMs > expMs;
 
   let daysRemaining: number | null = null;
+  let timeRemainingText: string | undefined = undefined;
+
   if (!isLifetime && !isExpired) {
     const diffMs = expMs - nowMs;
     daysRemaining = Math.max(0, Math.ceil(diffMs / (1000 * 60 * 60 * 24)));
+
+    if (diffMs < 60 * 60 * 1000) {
+      const mins = Math.max(1, Math.ceil(diffMs / (1000 * 60)));
+      timeRemainingText = `${mins}m`;
+    } else if (diffMs < 24 * 60 * 60 * 1000) {
+      const hrs = Math.ceil(diffMs / (1000 * 60 * 60));
+      timeRemainingText = `${hrs}h`;
+    } else {
+      timeRemainingText = `${daysRemaining}d`;
+    }
   }
 
   if (isExpired) {
-    const expDate = new Date(expMs).toLocaleDateString();
+    const expDate = new Date(expMs).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', month: 'short', day: 'numeric' });
     return {
       success: false,
       message: `This key expired on ${expDate}. Please enter a new active key.`,
@@ -127,6 +145,7 @@ export function verifyLicenseKey(rawKey: string): ActivationResult {
         isValid: false,
         isExpired: true,
         daysRemaining: 0,
+        timeRemainingText: '0m',
       },
     };
   }
@@ -140,11 +159,12 @@ export function verifyLicenseKey(rawKey: string): ActivationResult {
     isValid: true,
     isExpired: false,
     daysRemaining,
+    timeRemainingText,
   };
 
   return {
     success: true,
-    message: isLifetime ? 'Lifetime Key Activated Successfully!' : `Key Activated! Valid for ${daysRemaining} days.`,
+    message: isLifetime ? 'Lifetime Key Activated Successfully!' : `Key Activated! Valid for ${timeRemainingText || `${daysRemaining} days`}.`,
     license,
   };
 }
