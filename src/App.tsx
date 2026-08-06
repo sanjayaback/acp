@@ -150,14 +150,31 @@ export default function App() {
     });
 
     try {
-      // Create hidden video element to render source frames
-      const sourceVideo = document.createElement('video');
-      sourceVideo.src = currentProject.url;
-      sourceVideo.crossOrigin = 'anonymous';
-      sourceVideo.preload = 'auto';
+      // Create hidden video element with safety timeout for web & YouTube URLs
+      const sourceVideo = await new Promise<HTMLVideoElement>((resolve) => {
+        const video = document.createElement('video');
+        video.crossOrigin = 'anonymous';
+        video.preload = 'auto';
+        video.muted = true;
+        video.playsInline = true;
 
-      await new Promise((resolve) => {
-        sourceVideo.onloadeddata = resolve;
+        let isDone = false;
+        const done = () => {
+          if (!isDone) {
+            isDone = true;
+            resolve(video);
+          }
+        };
+
+        video.onloadeddata = done;
+        video.onloadedmetadata = done;
+        video.onerror = done;
+
+        // 1.5 second fallback timeout to prevent hanging on YouTube / web links
+        setTimeout(done, 1500);
+
+        video.src = currentProject.url;
+        video.load();
       });
 
       const outputBlobUrl = await exportClipToVideo(

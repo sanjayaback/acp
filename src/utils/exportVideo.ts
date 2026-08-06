@@ -94,55 +94,78 @@ export async function exportClipToVideo(
       reject(e);
     };
 
-    // Prepare video element playback
-    sourceVideo.pause();
-    sourceVideo.currentTime = startSec;
-    sourceVideo.muted = false;
+    let isStarted = false;
 
-    let isCancelled = false;
+    const startRecordingSession = () => {
+      if (isStarted) return;
+      isStarted = true;
 
-    sourceVideo.onseeked = () => {
-      if (isCancelled) return;
-      
-      mediaRecorder.start(100);
-      sourceVideo.play().catch(console.error);
+      try {
+        mediaRecorder.start(100);
+      } catch (err) {
+        console.warn('MediaRecorder start error:', err);
+      }
 
-      const renderLoop = () => {
-        if (sourceVideo.paused || sourceVideo.ended || sourceVideo.currentTime >= endSec) {
-          sourceVideo.pause();
-          mediaRecorder.stop();
-          onProgress({
-            isRendering: false,
-            progress: 100,
-            currentFrame: Math.round(duration * 30),
-            totalFrames: Math.round(duration * 30),
-            fps: 30,
-            statusText: 'Rendering complete!',
-          });
-          return;
+      let frameCount = 0;
+      const totalFrames = Math.max(30, Math.round(duration * 30));
+      const intervalMs = 1000 / 30;
+
+      const timerId = setInterval(() => {
+        frameCount++;
+        const currentRelTime = (frameCount / totalFrames) * duration;
+        const currentSimTime = startSec + currentRelTime;
+        const progressPct = Math.min(99, Math.round((frameCount / totalFrames) * 100));
+
+        // Try seeking video if HTML5 video is ready
+        if (sourceVideo.readyState >= 2) {
+          try {
+            sourceVideo.currentTime = currentSimTime;
+          } catch (e) {}
         }
 
-        const currentTime = sourceVideo.currentTime;
-        const currentRelTime = currentTime - startSec;
-        const progressPct = Math.min(99, Math.max(0, (currentRelTime / duration) * 100));
-
-        // Render Frame
-        drawCanvasFrame(ctx, sourceVideo, width, height, currentTime, startSec, duration, clip, customization);
+        // Draw Canvas Frame
+        drawCanvasFrame(ctx, sourceVideo, width, height, currentSimTime, startSec, duration, clip, customization);
 
         onProgress({
           isRendering: true,
-          progress: Math.round(progressPct),
-          currentFrame: Math.round(currentRelTime * 30),
-          totalFrames: Math.round(duration * 30),
+          progress: progressPct,
+          currentFrame: frameCount,
+          totalFrames: totalFrames,
           fps: 30,
-          statusText: `Encoding frames... ${Math.round(progressPct)}%`,
+          statusText: `Encoding 9:16 frames... ${progressPct}%`,
         });
 
-        requestAnimationFrame(renderLoop);
-      };
+        if (frameCount >= totalFrames) {
+          clearInterval(timerId);
+          try { sourceVideo.pause(); } catch (e) {}
+          try { mediaRecorder.stop(); } catch (e) {}
 
-      requestAnimationFrame(renderLoop);
+          onProgress({
+            isRendering: false,
+            progress: 100,
+            currentFrame: totalFrames,
+            totalFrames: totalFrames,
+            fps: 30,
+            statusText: 'Rendering complete!',
+          });
+        }
+      }, intervalMs);
     };
+
+    // Attempt video seeking
+    try {
+      sourceVideo.pause();
+      sourceVideo.currentTime = startSec;
+    } catch (e) {}
+
+    sourceVideo.onseeked = () => {
+      startRecordingSession();
+    };
+
+    // Safety fallback: Start recording session after 300ms even if onseeked doesn't trigger
+    setTimeout(() => {
+      startRecordingSession();
+    }, 300);
   });
 }
 
