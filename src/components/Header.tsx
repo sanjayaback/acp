@@ -36,7 +36,7 @@ export const Header: React.FC<HeaderProps> = ({
           <div>
             <div className="flex items-center gap-2">
               <h1 className="font-semibold text-slate-100 text-base tracking-tight leading-none">
-                ClipFlow <span className="text-slate-500 font-normal">/ AI Social Clipper</span>
+                cliapp <span className="text-slate-500 font-normal">/ AI Social Clipper</span>
               </h1>
             </div>
           </div>

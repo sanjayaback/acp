@@ -21,7 +21,7 @@ function getGeminiClient() {
     apiKey,
     httpOptions: {
       headers: {
-        'User-Agent': 'aistudio-build',
+        'User-Agent': 'cliapp-build',
       },
     },
   });
