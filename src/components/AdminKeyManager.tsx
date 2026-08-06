@@ -8,8 +8,6 @@ interface AdminKeyManagerProps {
   onClose: () => void;
 }
 
-const DEFAULT_ADMIN_PASSCODE = 'admin123';
-
 export const AdminKeyManager: React.FC<AdminKeyManagerProps> = ({ isOpen, onClose }) => {
   const [passcode, setPasscode] = useState('');
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -31,10 +29,11 @@ export const AdminKeyManager: React.FC<AdminKeyManagerProps> = ({ isOpen, onClos
     e.preventDefault();
     setAuthError('');
 
-    if (passcode.trim() === DEFAULT_ADMIN_PASSCODE || passcode.trim() === 'sanjayaback') {
+    const targetPasscode = (import.meta as any).env?.VITE_ADMIN_PASSCODE || 'sanjayaback';
+    if (passcode.trim() === targetPasscode || passcode.trim() === 'sanjayaback') {
       setIsAuthenticated(true);
     } else {
-      setAuthError('Invalid Admin Passcode. Default is: admin123');
+      setAuthError('Invalid Admin Passcode.');
     }
   };
 
@@ -90,7 +89,7 @@ export const AdminKeyManager: React.FC<AdminKeyManagerProps> = ({ isOpen, onClos
                 </div>
                 <h4 className="font-semibold text-slate-100 text-sm">Owner Passcode Required</h4>
                 <p className="text-xs text-slate-400 mt-1">
-                  Enter your admin passcode to access key generation tools.
+                  Enter your owner passcode to access key generation tools.
                 </p>
               </div>
 
@@ -100,7 +99,7 @@ export const AdminKeyManager: React.FC<AdminKeyManagerProps> = ({ isOpen, onClos
                   type="password"
                   value={passcode}
                   onChange={(e) => setPasscode(e.target.value)}
-                  placeholder="Enter passcode (default: admin123)"
+                  placeholder="••••••••"
                   className="w-full bg-[#07080A] border border-white/15 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-slate-600 focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-all"
                   autoFocus
                 />
