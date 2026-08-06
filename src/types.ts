@@ -67,3 +67,24 @@ export interface RenderProgress {
   statusText: string;
   outputBlobUrl?: string;
 }
+
+export type KeyDurationOption = '7d' | '30d' | '90d' | '365d' | 'lifetime';
+
+export interface LicenseInfo {
+  key: string;
+  activatedAt: string;
+  expiresAt: string | null; // null for lifetime
+  isLifetime: boolean;
+  planName: string;
+  issuedTo?: string;
+  isValid: boolean;
+  isExpired: boolean;
+  daysRemaining: number | null; // null for lifetime
+}
+
+export interface ActivationResult {
+  success: boolean;
+  message: string;
+  license?: LicenseInfo;
+}
+

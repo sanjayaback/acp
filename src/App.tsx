@@ -6,10 +6,14 @@ import { ClipList } from './components/ClipList';
 import { ClipStudio } from './components/ClipStudio';
 import { ExportQueue } from './components/ExportQueue';
 import { ExportModal } from './components/ExportModal';
+import { ActivationModal } from './components/ActivationModal';
+import { AdminKeyManager } from './components/AdminKeyManager';
 
-import { ProjectVideo, VideoClip, ClipCustomization, RenderProgress } from './types';
+import { ProjectVideo, VideoClip, ClipCustomization, RenderProgress, LicenseInfo } from './types';
 import { SAMPLE_VIDEOS } from './data/samples';
 import { exportClipToVideo } from './utils/exportVideo';
+import { getStoredLicense } from './utils/license';
+import { AlertCircle, Lock } from 'lucide-react';
 
 export default function App() {
   const [projects, setProjects] = useState<ProjectVideo[]>(SAMPLE_VIDEOS);
@@ -18,6 +22,28 @@ export default function App() {
 
   const [activeTab, setActiveTab] = useState<'upload' | 'clips' | 'studio' | 'exports'>('clips');
   const [isAnalyzing, setIsAnalyzing] = useState<boolean>(false);
+
+  // License State & Modals
+  const [license, setLicense] = useState<LicenseInfo | null>(null);
+  const [isActivationModalOpen, setIsActivationModalOpen] = useState<boolean>(false);
+  const [isAdminPortalOpen, setIsAdminPortalOpen] = useState<boolean>(false);
+
+  useEffect(() => {
+    // Check local storage for active license on startup
+    const stored = getStoredLicense();
+    setLicense(stored);
+  }, []);
+
+  const isLicenseValid = license?.isValid && !license?.isExpired;
+
+  // Helper to ensure license is active before restricted actions
+  const requireActiveLicense = (): boolean => {
+    if (!isLicenseValid) {
+      setIsActivationModalOpen(true);
+      return false;
+    }
+    return true;
+  };
 
   // Export Modal state
   const [exportModalState, setExportModalState] = useState<{
@@ -41,6 +67,8 @@ export default function App() {
 
   // Handle video project uploaded or selected
   const handleVideoUploaded = async (video: ProjectVideo, focusPrompt: string) => {
+    if (!requireActiveLicense()) return;
+
     setIsAnalyzing(true);
     setCurrentProject(video);
 
@@ -88,6 +116,7 @@ export default function App() {
 
   // Direct Export execution trigger
   const handleExportDirect = async (clip: VideoClip, customConfig?: ClipCustomization) => {
+    if (!requireActiveLicense()) return;
     if (!currentProject) return;
 
     const customization: ClipCustomization = customConfig || {
@@ -179,9 +208,37 @@ export default function App() {
           setCurrentProject(p);
           if (p.clips.length > 0) setActiveClip(p.clips[0]);
         }}
-        onOpenUpload={() => setActiveTab('upload')}
+        onOpenUpload={() => {
+          if (requireActiveLicense()) {
+            setActiveTab('upload');
+          }
+        }}
         isAnalyzing={isAnalyzing}
+        license={license}
+        onOpenActivation={() => setIsActivationModalOpen(true)}
+        onOpenAdminPortal={() => setIsAdminPortalOpen(true)}
       />
+
+      {/* Lockout Warning Banner if License Missing or Expired */}
+      {!isLicenseValid && (
+        <div className="bg-rose-500/10 border-b border-rose-500/20 px-6 py-2.5 text-xs text-rose-300 flex items-center justify-between gap-4">
+          <div className="flex items-center gap-2 max-w-4xl mx-auto">
+            <Lock className="w-4 h-4 text-rose-400 shrink-0" />
+            <span>
+              <strong>Activation Required:</strong>{' '}
+              {license?.isExpired
+                ? 'Your license key has expired. Please update your key to continue exporting and generating clips.'
+                : 'Please enter your software activation key to unlock full video processing features.'}
+            </span>
+          </div>
+          <button
+            onClick={() => setIsActivationModalOpen(true)}
+            className="px-3 py-1 bg-rose-600 hover:bg-rose-500 text-white font-medium rounded text-xs transition-colors shrink-0"
+          >
+            Enter Key
+          </button>
+        </div>
+      )}
 
       {/* Main Content Area */}
       <main className="transition-all duration-300">
@@ -197,7 +254,9 @@ export default function App() {
             project={currentProject}
             onEditInStudio={handleEditInStudio}
             onExportDirect={(c) => handleExportDirect(c)}
-            onOpenUpload={() => setActiveTab('upload')}
+            onOpenUpload={() => {
+              if (requireActiveLicense()) setActiveTab('upload');
+            }}
           />
         )}
 
@@ -223,7 +282,13 @@ export default function App() {
       {/* Mobile Bottom Navigation */}
       <BottomNav
         activeTab={activeTab}
-        setActiveTab={setActiveTab}
+        setActiveTab={(tab) => {
+          if ((tab === 'upload' || tab === 'exports') && !isLicenseValid) {
+            setIsActivationModalOpen(true);
+            return;
+          }
+          setActiveTab(tab);
+        }}
         clipsCount={currentProject?.clips.length || 0}
         exportsCount={0}
       />
@@ -236,6 +301,23 @@ export default function App() {
         clip={exportModalState.clip}
         customization={exportModalState.customization}
       />
+
+      {/* Activation Key Modal */}
+      <ActivationModal
+        isOpen={isActivationModalOpen}
+        onClose={() => setIsActivationModalOpen(false)}
+        currentLicense={license}
+        onLicenseUpdated={(newLic) => setLicense(newLic)}
+        onOpenAdminPortal={() => setIsAdminPortalOpen(true)}
+        isLockout={!isLicenseValid}
+      />
+
+      {/* Owner Admin Key Portal */}
+      <AdminKeyManager
+        isOpen={isAdminPortalOpen}
+        onClose={() => setIsAdminPortalOpen(false)}
+      />
     </div>
   );
 }
+

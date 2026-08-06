@@ -1,6 +1,6 @@
 import React from 'react';
-import { Scissors, Sparkles, Upload, Video, ChevronDown, CheckCircle2 } from 'lucide-react';
-import { ProjectVideo } from '../types';
+import { Scissors, Sparkles, Upload, Video, ChevronDown, CheckCircle2, KeyRound, ShieldCheck, ShieldAlert, Lock } from 'lucide-react';
+import { ProjectVideo, LicenseInfo } from '../types';
 
 interface HeaderProps {
   currentProject: ProjectVideo | null;
@@ -8,6 +8,9 @@ interface HeaderProps {
   onSelectProject: (p: ProjectVideo) => void;
   onOpenUpload: () => void;
   isAnalyzing: boolean;
+  license: LicenseInfo | null;
+  onOpenActivation: () => void;
+  onOpenAdminPortal: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -16,7 +19,12 @@ export const Header: React.FC<HeaderProps> = ({
   onSelectProject,
   onOpenUpload,
   isAnalyzing,
+  license,
+  onOpenActivation,
+  onOpenAdminPortal,
 }) => {
+  const isLicenseActive = license?.isValid && !license?.isExpired;
+
   return (
     <header className="sticky top-0 z-40 bg-[#0F1115]/95 backdrop-blur-md border-b border-white/10 px-6 py-3.5 shrink-0">
       <div className="max-w-7xl mx-auto flex items-center justify-between gap-3">
@@ -34,8 +42,43 @@ export const Header: React.FC<HeaderProps> = ({
           </div>
         </div>
 
-        {/* Project Dropdown / Active Status */}
+        {/* Right Nav Actions */}
         <div className="flex items-center gap-3">
+          {/* License Status Badge */}
+          <button
+            onClick={onOpenActivation}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-medium transition-all ${
+              isLicenseActive
+                ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/20'
+                : 'bg-rose-500/10 border-rose-500/30 text-rose-300 hover:bg-rose-500/20 animate-pulse'
+            }`}
+            title="Click to manage license key"
+          >
+            {isLicenseActive ? (
+              <>
+                <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
+                <span>
+                  {license?.isLifetime ? 'Lifetime License' : `${license?.daysRemaining}d Left`}
+                </span>
+              </>
+            ) : (
+              <>
+                <Lock className="w-3.5 h-3.5 text-rose-400" />
+                <span>{license?.isExpired ? 'License Expired' : 'Activate Key'}</span>
+              </>
+            )}
+          </button>
+
+          {/* Owner Admin Key Portal Button */}
+          <button
+            onClick={onOpenAdminPortal}
+            className="p-1.5 text-slate-400 hover:text-purple-300 hover:bg-purple-600/10 border border-transparent hover:border-purple-500/30 rounded-lg transition-all"
+            title="Owner Key Generator Portal"
+          >
+            <KeyRound className="w-4 h-4" />
+          </button>
+
+          {/* Project Dropdown / Active Status */}
           {currentProject && (
             <div className="relative group">
               <button
@@ -89,3 +132,4 @@ export const Header: React.FC<HeaderProps> = ({
     </header>
   );
 };
+
