@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Sparkles, Smartphone, Square, Monitor, Film, Layers, Filter } from 'lucide-react';
+import { Sparkles, Smartphone, Square, Monitor, Film, Layers, Zap, Download, CheckCircle2 } from 'lucide-react';
 import { VideoClip, ProjectVideo } from '../types';
 import { ClipCard } from './ClipCard';
 
@@ -17,6 +17,8 @@ export const ClipList: React.FC<ClipListProps> = ({
   onOpenUpload,
 }) => {
   const [filterRatio, setFilterRatio] = useState<string>('all');
+  const [batchRatioActive, setBatchRatioActive] = useState<boolean>(true); // Default 9:16 vertical ratio active
+  const [batchNotice, setBatchNotice] = useState<string>('');
 
   const filteredClips = project.clips.filter((clip) => {
     if (filterRatio === 'all') return true;
@@ -26,6 +28,24 @@ export const ClipList: React.FC<ClipListProps> = ({
     return true;
   });
 
+  const handleForceBatch916 = () => {
+    // Set all project clips to 9:16 aspect ratio
+    project.clips.forEach((c) => {
+      c.suggestedRatio = '9:16';
+    });
+    setBatchRatioActive(true);
+    setFilterRatio('9:16');
+    setBatchNotice(`All ${project.clips.length} clips set to 9:16 Vertical Ratio (TikTok / Reels / Shorts)`);
+    setTimeout(() => setBatchNotice(''), 3000);
+  };
+
+  const handleBatchExportFirst = () => {
+    if (project.clips.length === 0) return;
+    // Export first 9:16 clip and notify
+    const first916 = project.clips.find(c => c.suggestedRatio === '9:16') || project.clips[0];
+    onExportDirect(first916);
+  };
+
   return (
     <div className="max-w-4xl mx-auto px-4 py-6 space-y-6">
       {/* Header Info Banner */}
@@ -34,10 +54,10 @@ export const ClipList: React.FC<ClipListProps> = ({
           <div className="flex items-center gap-2">
             <span className="text-[10px] font-bold tracking-wider uppercase px-2 py-0.5 rounded bg-indigo-600/10 text-indigo-300 border border-indigo-600/20 flex items-center gap-1">
               <Sparkles className="w-3 h-3 text-indigo-400" />
-              <span>AI Clips Ready</span>
+              <span>AI Clips Extracted</span>
             </span>
             <span className="text-xs text-slate-400 font-mono">
-              {project.clips.length} Viral Highlights
+              {project.clips.length} Viral Moments
             </span>
           </div>
           <h2 className="text-base sm:text-lg font-semibold text-slate-100 mt-1">
@@ -67,7 +87,7 @@ export const ClipList: React.FC<ClipListProps> = ({
                 : 'text-slate-400 hover:text-slate-200'
             }`}
           >
-            <Smartphone className="w-3.5 h-3.5" />
+            <Smartphone className="w-3.5 h-3.5 text-pink-400" />
             <span>9:16 Reels/TikTok</span>
           </button>
 
@@ -79,7 +99,7 @@ export const ClipList: React.FC<ClipListProps> = ({
                 : 'text-slate-400 hover:text-slate-200'
             }`}
           >
-            <Square className="w-3.5 h-3.5" />
+            <Square className="w-3.5 h-3.5 text-amber-400" />
             <span>1:1 Square</span>
           </button>
 
@@ -91,11 +111,56 @@ export const ClipList: React.FC<ClipListProps> = ({
                 : 'text-slate-400 hover:text-slate-200'
             }`}
           >
-            <Monitor className="w-3.5 h-3.5" />
+            <Monitor className="w-3.5 h-3.5 text-blue-400" />
             <span>16:9 YouTube</span>
           </button>
         </div>
       </div>
+
+      {/* Batch 9:16 Action Toolbar */}
+      <div className="p-4 bg-gradient-to-r from-purple-900/30 via-indigo-900/30 to-purple-900/30 border border-purple-500/30 rounded-xl flex flex-col sm:flex-row items-center justify-between gap-3 shadow-lg">
+        <div className="flex items-center gap-3 text-left">
+          <div className="w-9 h-9 rounded-lg bg-purple-600/20 border border-purple-500/30 flex items-center justify-center text-purple-300 shrink-0">
+            <Smartphone className="w-5 h-5" />
+          </div>
+          <div>
+            <h3 className="text-xs font-bold text-slate-100 flex items-center gap-2">
+              <span>Multi-Clip 9:16 Batch Mode</span>
+              <span className="bg-purple-500/20 text-purple-300 text-[10px] px-2 py-0.5 rounded border border-purple-500/30">
+                TikTok / Reels / Shorts
+              </span>
+            </h3>
+            <p className="text-[11px] text-slate-400 mt-0.5">
+              Convert all extracted clips from this video into vertical 9:16 format simultaneously.
+            </p>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-2 w-full sm:w-auto shrink-0">
+          <button
+            onClick={handleForceBatch916}
+            className="flex-1 sm:flex-initial px-3.5 py-2 bg-purple-600 hover:bg-purple-500 text-white text-xs font-semibold rounded-lg transition-all shadow-md flex items-center justify-center gap-1.5"
+          >
+            <Zap className="w-3.5 h-3.5 text-amber-300 fill-current" />
+            <span>Convert All to 9:16</span>
+          </button>
+
+          <button
+            onClick={handleBatchExportFirst}
+            className="flex-1 sm:flex-initial px-3.5 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold rounded-lg transition-all shadow-md flex items-center justify-center gap-1.5"
+          >
+            <Download className="w-3.5 h-3.5" />
+            <span>Export 9:16 Clip</span>
+          </button>
+        </div>
+      </div>
+
+      {batchNotice && (
+        <div className="p-3 bg-emerald-500/15 border border-emerald-500/30 rounded-xl text-emerald-300 text-xs flex items-center gap-2 animate-fadeIn">
+          <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+          <span>{batchNotice}</span>
+        </div>
+      )}
 
       {/* Clip Cards Feed */}
       {filteredClips.length > 0 ? (
