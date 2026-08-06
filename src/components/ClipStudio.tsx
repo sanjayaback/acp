@@ -3,6 +3,7 @@ import { Play, Pause, Smartphone, Square, Monitor, Sparkles, Sliders, Type, Layo
 import { VideoClip, SocialRatio, FrameStyle, SubStyle, ClipCustomization, ProjectVideo } from '../types';
 import { formatTime, formatTimeMs } from '../utils/time';
 import { drawCanvasFrame, getRatioDimensions } from '../utils/exportVideo';
+import { SmartVideoPlayer, getYouTubeId } from './SmartVideoPlayer';
 
 interface ClipStudioProps {
   clip: VideoClip;
@@ -170,20 +171,32 @@ export const ClipStudio: React.FC<ClipStudioProps> = ({
                 : 'w-[340px] sm:w-[500px] h-[190px] sm:h-[280px]'
             }`}
           >
-            {/* Live Render Canvas */}
-            <canvas ref={canvasRef} className="w-full h-full object-contain" />
+            {/* Live Render Canvas or YouTube Smart Player */}
+            {getYouTubeId(project.url) ? (
+              <SmartVideoPlayer
+                url={project.url}
+                startTime={customization.trimStart}
+                endTime={customization.trimEnd}
+                autoPlay={isPlaying}
+                className="w-full h-full"
+              />
+            ) : (
+              <canvas ref={canvasRef} className="w-full h-full object-contain" />
+            )}
 
             {/* Play Overlay Control */}
-            <button
-              onClick={togglePlay}
-              className="absolute inset-0 flex items-center justify-center bg-black/20 hover:bg-black/40 transition-colors group"
-            >
-              {!isPlaying && (
-                <div className="w-14 h-14 rounded-full bg-indigo-600 text-white flex items-center justify-center shadow-2xl shadow-indigo-600/50 group-hover:scale-110 transition-transform">
-                  <Play className="w-7 h-7 ml-1 fill-current" />
-                </div>
-              )}
-            </button>
+            {!getYouTubeId(project.url) && (
+              <button
+                onClick={togglePlay}
+                className="absolute inset-0 flex items-center justify-center bg-black/20 hover:bg-black/40 transition-colors group"
+              >
+                {!isPlaying && (
+                  <div className="w-14 h-14 rounded-full bg-indigo-600 text-white flex items-center justify-center shadow-2xl shadow-indigo-600/50 group-hover:scale-110 transition-transform">
+                    <Play className="w-7 h-7 ml-1 fill-current" />
+                  </div>
+                )}
+              </button>
+            )}
           </div>
 
           {/* Video Controls Scrubber Bar */}

@@ -1,7 +1,8 @@
 import React from 'react';
-import { Play, Flame, Wand2, Download, Copy, Check, Hash, Smartphone, Monitor, Square } from 'lucide-react';
+import { Play, Flame, Wand2, Download, Copy, Check, Smartphone, Monitor, Square } from 'lucide-react';
 import { VideoClip, SocialRatio } from '../types';
 import { formatTime, formatDuration } from '../utils/time';
+import { SmartVideoPlayer } from './SmartVideoPlayer';
 
 interface ClipCardProps {
   clip: VideoClip;
@@ -44,36 +45,38 @@ export const ClipCard: React.FC<ClipCardProps> = ({
 
   return (
     <div className="bg-[#0F1115] border border-white/10 hover:border-white/20 rounded-xl overflow-hidden transition-all flex flex-col sm:flex-row group">
-      {/* Video Preview Thumbnail Box */}
-      <div className="relative sm:w-52 h-44 sm:h-auto bg-[#07080A] shrink-0 overflow-hidden flex items-center justify-center">
-        <video
-          src={`${videoUrl}#t=${clip.startTime}`}
-          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 opacity-80"
-          preload="metadata"
+      {/* Video Preview Box */}
+      <div className="relative sm:w-56 h-48 sm:h-auto bg-[#07080A] shrink-0 overflow-hidden flex items-center justify-center">
+        <SmartVideoPlayer
+          url={videoUrl}
+          startTime={clip.startTime}
+          endTime={clip.endTime}
+          controls={false}
+          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 opacity-85"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-[#07080A] via-transparent to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-[#07080A] via-transparent to-transparent pointer-events-none" />
 
         {/* Ratio Tag Badge */}
-        <div className="absolute top-2.5 left-2.5 flex items-center gap-1.5 bg-black/80 backdrop-blur-md px-2 py-1 rounded text-[10px] font-semibold text-slate-200 border border-white/10">
+        <div className="absolute top-2.5 left-2.5 flex items-center gap-1.5 bg-black/80 backdrop-blur-md px-2 py-1 rounded text-[10px] font-semibold text-slate-200 border border-white/10 z-10">
           <IconComp className="w-3 h-3 text-indigo-400" />
           <span>{clip.suggestedRatio}</span>
         </div>
 
         {/* Viral Score Badge */}
-        <div className="absolute top-2.5 right-2.5 flex items-center gap-1 bg-amber-500/10 border border-amber-500/20 backdrop-blur-md px-2 py-1 rounded text-[10px] font-bold text-amber-300">
+        <div className="absolute top-2.5 right-2.5 flex items-center gap-1 bg-amber-500/10 border border-amber-500/20 backdrop-blur-md px-2 py-1 rounded text-[10px] font-bold text-amber-300 z-10">
           <Flame className="w-3 h-3 text-amber-400 fill-amber-400" />
           <span>{clip.viralScore}% Score</span>
         </div>
 
         {/* Duration */}
-        <div className="absolute bottom-2.5 left-2.5 bg-black/80 text-[10px] font-mono text-slate-300 px-2 py-0.5 rounded border border-white/10">
+        <div className="absolute bottom-2.5 left-2.5 bg-black/80 text-[10px] font-mono text-slate-300 px-2 py-0.5 rounded border border-white/10 z-10">
           {formatTime(clip.startTime)} - {formatTime(clip.endTime)} ({formatDuration(clip.duration)})
         </div>
 
         {/* Center Play / Studio Hover CTA */}
         <button
           onClick={() => onEditInStudio(clip)}
-          className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity"
+          className="absolute inset-0 z-20 flex items-center justify-center bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity"
         >
           <div className="w-10 h-10 rounded-full bg-indigo-600 text-white flex items-center justify-center shadow-lg shadow-indigo-600/40 hover:scale-110 transition-transform">
             <Play className="w-4 h-4 ml-0.5 fill-current" />

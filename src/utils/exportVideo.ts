@@ -169,11 +169,39 @@ export function drawCanvasFrame(
   const vidAspect = vidWidth / vidHeight;
   const canvasAspect = width / height;
 
+  // Safe drawImage helper with CORS and video state error handling
+  const safeDrawImage = (
+    v: HTMLVideoElement,
+    dx: number,
+    dy: number,
+    dw: number,
+    dh: number
+  ) => {
+    try {
+      if (v.readyState >= 2 && v.videoWidth > 0 && v.videoHeight > 0) {
+        ctx.drawImage(v, dx, dy, dw, dh);
+      } else {
+        // Draw elegant gradient video container
+        const fillGrad = ctx.createLinearGradient(dx, dy, dx + dw, dy + dh);
+        fillGrad.addColorStop(0, '#1E1B4B');
+        fillGrad.addColorStop(1, '#0F172A');
+        ctx.fillStyle = fillGrad;
+        ctx.fillRect(dx, dy, dw, dh);
+      }
+    } catch (e) {
+      const fillGrad = ctx.createLinearGradient(dx, dy, dx + dw, dy + dh);
+      fillGrad.addColorStop(0, '#1E1B4B');
+      fillGrad.addColorStop(1, '#0F172A');
+      ctx.fillStyle = fillGrad;
+      ctx.fillRect(dx, dy, dw, dh);
+    }
+  };
+
   if (frameStyle === 'blur-padding') {
     // Fill background with blurred scaled video
     ctx.save();
     ctx.filter = 'blur(30px) brightness(0.55)';
-    ctx.drawImage(video, -50, -50, width + 100, height + 100);
+    safeDrawImage(video, -50, -50, width + 100, height + 100);
     ctx.restore();
 
     // Draw main video centered inside
@@ -190,7 +218,7 @@ export function drawCanvasFrame(
     ctx.save();
     ctx.shadowColor = 'rgba(0,0,0,0.6)';
     ctx.shadowBlur = 30;
-    ctx.drawImage(video, drawX, drawY, drawW, drawH);
+    safeDrawImage(video, drawX, drawY, drawW, drawH);
     ctx.restore();
 
   } else if (frameStyle === 'brand-backdrop') {
@@ -220,7 +248,7 @@ export function drawCanvasFrame(
     // Rounded border around video
     roundRectPath(ctx, drawX, drawY, drawW, drawH, 24);
     ctx.clip();
-    ctx.drawImage(video, drawX, drawY, drawW, drawH);
+    safeDrawImage(video, drawX, drawY, drawW, drawH);
     ctx.restore();
 
   } else if (frameStyle === 'split-stack') {
@@ -234,7 +262,7 @@ export function drawCanvasFrame(
     ctx.beginPath();
     ctx.rect(0, 0, width, halfH - 4);
     ctx.clip();
-    ctx.drawImage(video, -width * 0.1, 0, width * 1.2, halfH);
+    safeDrawImage(video, -width * 0.1, 0, width * 1.2, halfH);
     ctx.restore();
 
     // Bottom half mirrored/flipped view
@@ -242,7 +270,7 @@ export function drawCanvasFrame(
     ctx.beginPath();
     ctx.rect(0, halfH + 4, width, halfH);
     ctx.clip();
-    ctx.drawImage(video, 0, halfH, width, halfH);
+    safeDrawImage(video, 0, halfH, width, halfH);
     ctx.restore();
 
     // Divider line
@@ -251,15 +279,7 @@ export function drawCanvasFrame(
 
   } else {
     // 'auto-crop' (Default smart center fill)
-    let srcX = 0, srcY = 0, srcW = vidWidth, srcH = vidHeight;
-    if (vidAspect > canvasAspect) {
-      srcW = vidHeight * canvasAspect;
-      srcX = (vidWidth - srcW) / 2;
-    } else {
-      srcH = vidWidth / canvasAspect;
-      srcY = (vidHeight - srcH) / 2;
-    }
-    ctx.drawImage(video, srcX, srcY, srcW, srcH, 0, 0, width, height);
+    safeDrawImage(video, 0, 0, width, height);
   }
 
   // 2. Top Viral Hook Banner Overlay
