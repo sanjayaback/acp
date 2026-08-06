@@ -1,0 +1,6 @@
+{
+  "name": "AutoClip AI - Video to Social Clips",
+  "description": "Transform long videos automatically into viral social media clips (9:16 TikTok/Reels, 1:1, 16:9) with smart auto-reframing, captions, and direct video exports.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
