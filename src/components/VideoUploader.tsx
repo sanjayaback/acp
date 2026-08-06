@@ -1,7 +1,6 @@
 import React, { useState, useRef } from 'react';
-import { Upload, Sparkles, Film, Play, Zap, FileVideo, CheckCircle2, ArrowRight, Link as LinkIcon, Youtube, Globe, AlertCircle } from 'lucide-react';
+import { Upload, Sparkles, Zap, FileVideo, CheckCircle2, Link as LinkIcon, Youtube, Globe, AlertCircle } from 'lucide-react';
 import { ProjectVideo } from '../types';
-import { SAMPLE_VIDEOS } from '../data/samples';
 import { formatDuration, formatBytes } from '../utils/time';
 
 interface VideoUploaderProps {
@@ -113,15 +112,15 @@ export const VideoUploader: React.FC<VideoUploaderProps> = ({
     const defaultName = ytId ? `YouTube Video (${ytId})` : cleanUrl.split('/').pop()?.split('?')[0] || 'Imported Web Video';
     const finalTitle = linkTitle.trim() || defaultName;
 
-    // Use high resolution thumbnail if YouTube or sample video fallback
+    // Use high resolution thumbnail if YouTube or generic poster fallback
     const thumbUrl = ytId
       ? `https://img.youtube.com/vi/${ytId}/hqdefault.jpg`
-      : SAMPLE_VIDEOS[0].thumbnailUrl;
+      : 'https://images.unsplash.com/photo-1574717024653-61fd2cf4d44d?q=80&w=800&auto=format&fit=crop';
 
     const newProject: ProjectVideo = {
       id: `link-vid-${Date.now()}`,
       name: finalTitle,
-      url: cleanUrl.endsWith('.mp4') || cleanUrl.endsWith('.webm') ? cleanUrl : SAMPLE_VIDEOS[0].url,
+      url: cleanUrl,
       duration: linkDurationSecs || 600,
       sourceType: 'file',
       thumbnailUrl: thumbUrl,
@@ -377,59 +376,7 @@ export const VideoUploader: React.FC<VideoUploaderProps> = ({
           </form>
         )}
       </div>
-
-      {/* Quick Test Sample Videos */}
-      <div className="space-y-3">
-        <div className="flex items-center justify-between">
-          <h2 className="text-xs font-semibold text-slate-300 uppercase tracking-wider flex items-center gap-2">
-            <Film className="w-4 h-4 text-indigo-400" />
-            <span>Or Try Demo Long Video Samples</span>
-          </h2>
-          <span className="text-xs text-slate-400">Instant 9:16 AI clip extraction</span>
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          {SAMPLE_VIDEOS.map((sample) => (
-            <div
-              key={sample.id}
-              onClick={() => handleSelectSample(sample)}
-              className="group bg-[#0F1115] border border-white/10 hover:border-indigo-600/50 rounded-xl overflow-hidden cursor-pointer transition-all flex flex-col"
-            >
-              <div className="relative h-36 bg-[#07080A] overflow-hidden">
-                <img
-                  src={sample.thumbnailUrl}
-                  alt={sample.name}
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 opacity-80"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-[#07080A] via-transparent to-transparent" />
-                <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between">
-                  <span className="bg-black/80 backdrop-blur-md text-slate-200 text-xs font-mono px-2 py-0.5 rounded border border-white/10">
-                    {formatDuration(sample.duration)}
-                  </span>
-                  <span className="bg-indigo-600/20 text-indigo-300 text-[10px] font-semibold px-2 py-0.5 rounded border border-indigo-600/30">
-                    {sample.clips.length} Pre-Detected 9:16 Clips
-                  </span>
-                </div>
-                <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/40">
-                  <div className="w-10 h-10 rounded-full bg-indigo-600 text-white flex items-center justify-center shadow-lg shadow-indigo-600/40">
-                    <Play className="w-4 h-4 ml-0.5 fill-current" />
-                  </div>
-                </div>
-              </div>
-
-              <div className="p-4 flex-1 flex flex-col justify-between">
-                <h3 className="font-medium text-sm text-slate-200 line-clamp-2 group-hover:text-indigo-300 transition-colors">
-                  {sample.name}
-                </h3>
-                <div className="mt-3 flex items-center justify-between text-xs text-indigo-400 font-medium">
-                  <span>Extract 9:16 Clips Now</span>
-                  <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
     </div>
   );
 };
+

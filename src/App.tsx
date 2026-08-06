@@ -10,17 +10,16 @@ import { ActivationModal } from './components/ActivationModal';
 import { AdminKeyManager } from './components/AdminKeyManager';
 
 import { ProjectVideo, VideoClip, ClipCustomization, RenderProgress, LicenseInfo } from './types';
-import { SAMPLE_VIDEOS } from './data/samples';
 import { exportClipToVideo } from './utils/exportVideo';
 import { getStoredLicense } from './utils/license';
 import { AlertCircle, Lock } from 'lucide-react';
 
 export default function App() {
-  const [projects, setProjects] = useState<ProjectVideo[]>(SAMPLE_VIDEOS);
-  const [currentProject, setCurrentProject] = useState<ProjectVideo | null>(SAMPLE_VIDEOS[0]);
-  const [activeClip, setActiveClip] = useState<VideoClip | null>(SAMPLE_VIDEOS[0].clips[0] || null);
+  const [projects, setProjects] = useState<ProjectVideo[]>([]);
+  const [currentProject, setCurrentProject] = useState<ProjectVideo | null>(null);
+  const [activeClip, setActiveClip] = useState<VideoClip | null>(null);
 
-  const [activeTab, setActiveTab] = useState<'upload' | 'clips' | 'studio' | 'exports'>('clips');
+  const [activeTab, setActiveTab] = useState<'upload' | 'clips' | 'studio' | 'exports'>('upload');
   const [isAnalyzing, setIsAnalyzing] = useState<boolean>(false);
 
   // License State & Modals
