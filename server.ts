@@ -178,74 +178,49 @@ Generate 3-5 distinct viral clips across the timeline of this video.`;
 });
 
 function generateFallbackClips(title: string, duration: number, focus: string) {
-  const numClips = Math.min(4, Math.max(2, Math.floor(duration / 90)));
+  const videoName = title && title.trim() ? title.trim() : 'Video Highlight';
+  const numClips = Math.min(5, Math.max(3, Math.floor(duration / 90)));
   const interval = duration / (numClips + 1);
 
-  const presets = [
-    {
-      title: 'The #1 Mistake Everyone Makes 🚨',
-      summary: 'High-energy revelation that creates immediate curiosity.',
-      category: 'hook',
-      score: 98,
-      ratio: '9:16',
-      caption: 'Stop doing this immediately if you want real results in 2026! 🔥 #Tips #Viral #Reels #TikTok',
-      tags: ['#Mindset', '#Growth', '#LifeHacks', '#Reels'],
-    },
-    {
-      title: 'How To Double Your Output in 30 Days ⚡',
-      summary: 'Actionable breakdown of peak performance strategies.',
-      category: 'actionable',
-      score: 95,
-      ratio: '9:16',
-      caption: 'This simple framework changed everything for my workflow. Try it today! #Productivity #Success',
-      tags: ['#Productivity', '#Focus', '#TikTokStrategy', '#Motivation'],
-    },
-    {
-      title: 'Why The Old Way Is Dead 💡',
-      summary: 'Contrarian perspective that drives debate in comment section.',
-      category: 'insight',
-      score: 92,
-      ratio: '1:1',
-      caption: 'The industry shifted, but 90% of people are still using outdated tools. Here is what works now! #Future',
-      tags: ['#Business', '#Strategy', '#LinkedIn', '#Trends'],
-    },
-    {
-      title: 'The Hardest Lesson I Learned 🎯',
-      summary: 'Personal story clip with emotional resonance and authenticity.',
-      category: 'story',
-      score: 89,
-      ratio: '9:16',
-      caption: 'It took 3 years of failing to realize this one truth. Hope this saves you time! #Lessons #Storytime',
-      tags: ['#Storytime', '#Inspiration', '#RealTalk'],
-    },
+  const categories = [
+    { cat: 'hook', prefix: '🔥 Viral Hook', icon: '🚨', score: 98 },
+    { cat: 'actionable', prefix: '⚡ Core Takeaway', icon: '⚡', score: 95 },
+    { cat: 'insight', prefix: '💡 High Impact Moment', icon: '💡', score: 92 },
+    { cat: 'story', prefix: '🎯 Best Highlight', icon: '🎯', score: 89 },
+    { cat: 'funny', prefix: '✨ Key Segment', icon: '✨', score: 87 },
   ];
 
   return Array.from({ length: numClips }).map((_, i) => {
-    const p = presets[i % presets.length];
+    const c = categories[i % categories.length];
     const start = Math.floor((i + 1) * interval - 10);
     const clipDur = 30;
-    const end = Math.min(duration, start + clipDur);
+    const end = Math.min(duration, Math.max(start + 15, start + clipDur));
 
-    const words = p.caption.split(/\s+/).map((w, wIdx, arr) => ({
+    const clipTitle = `${c.prefix} - ${videoName.slice(0, 30)} ${c.icon}`;
+    const clipSummary = `Key segment extracted focusing on ${focus || 'viral moments'}.`;
+    const clipCaption = `Must-watch moment from "${videoName}"! 🔥 #ViralClips #Reels #TikTok #Shorts`;
+    const clipTags = ['#Viral', '#Shorts', '#Reels', '#TikTok', '#Trending'];
+
+    const words = clipCaption.split(/\s+/).map((w, wIdx, arr) => ({
       word: w,
       start: Number((start + (wIdx * clipDur) / arr.length).toFixed(1)),
       end: Number((start + ((wIdx + 1) * clipDur) / arr.length).toFixed(1)),
     }));
 
     return {
-      id: `fallback-clip-${Date.now()}-${i}`,
-      title: p.title,
-      hookSummary: p.summary,
+      id: `clip-${Date.now()}-${i}`,
+      title: clipTitle,
+      hookSummary: clipSummary,
       startTime: Math.max(0, start),
       endTime: end,
       duration: end - start,
-      viralScore: p.score,
-      suggestedRatio: p.ratio,
-      suggestedCaption: p.caption,
-      hashtags: p.tags,
+      viralScore: c.score,
+      suggestedRatio: '9:16',
+      suggestedCaption: clipCaption,
+      hashtags: clipTags,
       transcriptWords: words,
-      category: p.category,
-      speakers: ['Main Speaker'],
+      category: c.cat,
+      speakers: ['Speaker 1'],
       status: 'ready',
     };
   });
